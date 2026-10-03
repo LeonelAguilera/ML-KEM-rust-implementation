@@ -1,0 +1,35 @@
+use crate::{hash_functions::HashFunctions, sampling_algorithms::SamplingAlgorithms, sets::{B, Znk, Znkxk}};
+
+pub struct KPke<const K: usize>;
+
+impl<const K: usize> KPke<K> {
+    pub fn key_gen<const Q: u64, const ETA: usize>(d: B<32>) -> (Vec<u8>, Vec<u8>) {
+        let (p, sigma) = HashFunctions::g([d.to_vec(), [K as u8].to_vec()].concat());
+        let mut n = 0;
+
+        let mut a = Znkxk::<Q, 256, K>::new_empty();
+        for i in 0..K {
+            for j in 0..K {
+                a[i][j] = SamplingAlgorithms::sample_ntt([p.to_vec(), [j as u8].to_vec(), [i as u8].to_vec()].concat())
+            }
+        }
+
+        let mut s = Znk::<Q, 256, K>::new_empty();
+        for i in 0..K {
+            s[i] = SamplingAlgorithms::sample_poly_cbd::<Q, ETA>(HashFunctions::prf::<ETA>(&sigma, n));
+            n = n + 1;
+        }
+
+        let mut e = Znk::<Q, 256, K>::new_empty();
+        for i in 0..K {
+            e[i] = SamplingAlgorithms::sample_poly_cbd::<Q, ETA>(HashFunctions::prf::<ETA>(&sigma, n));
+            n = n + 1;
+        }
+
+        let s: Vec<_> = s.iter().map(|s_n| HashFunctions::ntt::<Q>(&s_n)).collect();
+        let e: Vec<_> = e.iter().map(|e_n| HashFunctions::ntt::<Q>(&e_n)).collect();
+        //t = 
+
+        todo!();
+    }
+}
