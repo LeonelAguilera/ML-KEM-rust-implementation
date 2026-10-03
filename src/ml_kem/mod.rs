@@ -22,9 +22,9 @@ pub enum MlKemDyn {
     MlKem1024(MlKem<256, 3329, 4, 2, 2, 11, 5>),
 }
 
-pub struct MlKem<const N: u64, const Q: u64, const K: usize, const ETA1: usize, const ETA2: u64, const DU: u64, const DV: u64>;
+pub struct MlKem<const N: u64, const Q: i64, const K: usize, const ETA1: usize, const ETA2: u64, const DU: u64, const DV: u64>;
 
-impl<const N: u64, const Q: u64, const K: usize, const ETA1: usize, const ETA2: u64, const DU: u64, const DV: u64> MlKem<N, Q, K, ETA1, ETA2, DU, DV> {
+impl<const N: u64, const Q: i64, const K: usize, const ETA1: usize, const ETA2: u64, const DU: u64, const DV: u64> MlKem<N, Q, K, ETA1, ETA2, DU, DV> {
     pub fn key_gen(&self) -> (Vec<u8>, Vec<u8>) {
         let d = B::<32>::new_random();
         let z = B::<32>::new_random();

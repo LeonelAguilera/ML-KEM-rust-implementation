@@ -20,7 +20,7 @@ impl HashFunctions {
     pub fn prf<const ETA: usize>(s: &B<32>, b: u8,) -> Vec<u8> {
         return Self::shake256([s.to_vec(), [b].to_vec()].concat(), 8 * 64 * ETA);
     }
-    pub fn ntt<const Q: u64>(f: &Zn<Q, 256>) -> Zn<Q, 256> {
+    pub fn ntt<const Q: i64>(f: &Zn<Q, 256>) -> Zn<Q, 256> {
         todo!();
     }
 }

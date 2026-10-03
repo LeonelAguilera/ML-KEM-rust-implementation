@@ -1,9 +1,9 @@
-use crate::{hash_functions::HashFunctions, sampling_algorithms::SamplingAlgorithms, sets::{B, Znk, Znkxk}};
+use crate::{hash_functions::HashFunctions, sampling_algorithms::SamplingAlgorithms, sets::{B, Circle, Znk, Znkxk}};
 
 pub struct KPke<const K: usize>;
 
 impl<const K: usize> KPke<K> {
-    pub fn key_gen<const Q: u64, const ETA: usize>(d: B<32>) -> (Vec<u8>, Vec<u8>) {
+    pub fn key_gen<const Q: i64, const ETA: usize>(d: B<32>) -> (Vec<u8>, Vec<u8>) {
         let (p, sigma) = HashFunctions::g([d.to_vec(), [K as u8].to_vec()].concat());
         let mut n = 0;
 
@@ -26,9 +26,9 @@ impl<const K: usize> KPke<K> {
             n = n + 1;
         }
 
-        let s: Vec<_> = s.iter().map(|s_n| HashFunctions::ntt::<Q>(&s_n)).collect();
-        let e: Vec<_> = e.iter().map(|e_n| HashFunctions::ntt::<Q>(&e_n)).collect();
-        //t = 
+        let s = s.map(|s_n| HashFunctions::ntt::<Q>(&s_n));
+        let e = e.map(|e_n| HashFunctions::ntt::<Q>(&e_n));
+        let t = a.circle(s) + e;
 
         todo!();
     }
