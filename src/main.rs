@@ -10,5 +10,8 @@ use ml_kem::MlKemTypes;
 
 fn main() {
     let crypto = MlKemTypes::MlKem512.new();
+    let (encryption_key, decryption_key) = crypto.key_gen();
+    println!("{:?}", encryption_key);
+    println!("{:?}", decryption_key);
 }
 

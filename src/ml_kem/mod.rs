@@ -22,6 +22,16 @@ pub enum MlKemDyn {
     MlKem1024(MlKem<256, 3329, 4, 2, 2, 11, 5>),
 }
 
+impl MlKemDyn {
+    pub fn key_gen(&self) -> (Vec<u8>, Vec<u8>) {
+        match self {
+            MlKemDyn::MlKem512(ml_kem) => ml_kem.key_gen(),
+            MlKemDyn::MlKem768(ml_kem) => ml_kem.key_gen(),
+            MlKemDyn::MlKem1024(ml_kem) => ml_kem.key_gen(),
+        }
+    }
+}
+
 pub struct MlKem<const N: u64, const Q: i64, const K: usize, const ETA1: usize, const ETA2: u64, const DU: u64, const DV: u64>;
 
 impl<const N: u64, const Q: i64, const K: usize, const ETA1: usize, const ETA2: u64, const DU: u64, const DV: u64> MlKem<N, Q, K, ETA1, ETA2, DU, DV> {
