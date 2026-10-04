@@ -17,6 +17,27 @@ impl<const N: usize> B<N> {
     pub fn to_vec(&self) -> Vec<u8> {
         return self.0.to_vec();
     }
+    pub fn append<const N2: usize>(&self, &rhs: &B<N2>) -> B<{N + N2}> {
+        let mut whole = B::<{N + N2}>::new_empty();
+        let (one, two) = whole.0.split_at_mut(self.0.len());
+        one.copy_from_slice(&self.0);
+        two.copy_from_slice(&rhs.0);
+
+        return whole;
+    }
+}
+
+impl<const N: usize> Index<usize> for B<N> {
+    type Output = u8;
+    fn index(&self, index: usize) -> &Self::Output {
+        return &self.0[index];
+    }
+}
+
+impl<const N: usize> IndexMut<usize> for B<N> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        return &mut self.0[index];
+    }
 }
 
 #[derive(Copy, Clone)]

@@ -35,21 +35,43 @@ impl MlKemDyn {
 pub struct MlKem<const N: u64, const Q: i64, const K: usize, const ETA1: usize, const ETA2: u64, const DU: u64, const DV: u64>;
 
 impl<const N: u64, const Q: i64, const K: usize, const ETA1: usize, const ETA2: u64, const DU: u64, const DV: u64> MlKem<N, Q, K, ETA1, ETA2, DU, DV> {
-    pub fn key_gen(&self) -> (Vec<u8>, Vec<u8>) {
+    pub fn key_gen(&self) -> (B<{(K*384) + 32}>, B<{(K*768) + 96}>) {
         let d = B::<32>::new_random();
         let z = B::<32>::new_random();
         
         let (ek, dk) = self.key_gen_internal(d, z);
-        assert_eq!(ek.len(), K*384 + 32);
-        assert_eq!(dk.len(), K*768 + 96);
         return (ek, dk);
     }
 
-    fn key_gen_internal(&self, d: B<32>, z: B<32>) -> (Vec<u8>, Vec<u8>) {
+    fn key_gen_internal(&self, d: B<32>, z: B<32>) -> (B<{(K*384) + 32}>, B<{(K*768) + 96}>) {
         let (ek_pke, dk_pke) = KPke::<K>::key_gen::<Q, ETA1>(d);
         let ek = ek_pke;
-        let dk = [dk_pke, ek.clone(), HashFunctions::h(ek.clone()).to_vec(), z.to_vec()].concat();
+        let dk = Self::get_dk(dk_pke, ek, HashFunctions::h(&ek), z);
 
         return (ek, dk);
+    }
+    fn get_dk(dk_pke: B<{K*384}>, ek: B<{(K*384) + 32}>, h: B<32>, z: B<32>) -> B<{(K*768) + 96}> {
+        let mut whole = B::new_empty();
+        let mut index_offset = 0;
+        for i in 0..(K*384) {
+            whole[i + index_offset] = dk_pke[i];
+        }
+        index_offset += K*384;
+
+        for i in 0..((K*384) + 32) {
+            whole[i + index_offset] = ek[i];
+        }
+        index_offset += (K*384) + 32;
+
+        for i in 0..32 {
+            whole[i + index_offset] = h[i];
+        }
+        index_offset += 32;
+
+        for i in 0..32 {
+            whole[i + index_offset] = z[i];
+        }
+
+        return whole;
     }
 }

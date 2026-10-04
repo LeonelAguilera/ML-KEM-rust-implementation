@@ -6,7 +6,7 @@ impl HashFunctions {
         todo!();
     }
     //SHA3-256
-    pub fn h(s: Vec<u8>) -> B<32> {
+    pub fn h<const N: usize>(s: &B<N>) -> B<32> {
         todo!();
     }
     //SHAKE256

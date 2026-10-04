@@ -1,4 +1,6 @@
 //https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf
+#![feature(generic_const_exprs)]
+#![allow(incomplete_features)]
 
 mod ml_kem;
 mod sets;

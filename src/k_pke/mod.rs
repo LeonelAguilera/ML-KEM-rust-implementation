@@ -3,7 +3,7 @@ use crate::{hash_functions::HashFunctions, sampling_algorithms::SamplingAlgorith
 pub struct KPke<const K: usize>;
 
 impl<const K: usize> KPke<K> {
-    pub fn key_gen<const Q: i64, const ETA: usize>(d: B<32>) -> (Vec<u8>, Vec<u8>) {
+    pub fn key_gen<const Q: i64, const ETA: usize>(d: B<32>) -> (B<{(K*384) + 32}>, B<{K*384}>) {
         let (p, sigma) = HashFunctions::g([d.to_vec(), [K as u8].to_vec()].concat());
         let mut n = 0;
 
