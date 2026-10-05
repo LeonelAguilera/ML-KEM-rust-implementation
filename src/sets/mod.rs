@@ -89,6 +89,7 @@ impl<const M: i64, const N: usize> Mul for Zn<M, N> {
 
         let mut h = Zn::<M, N>::new_empty();
         for i in 0..(N / 2) {
+            assert!(i < GAMMA_VALS.len(), "Tried to multiply two Zn values with N greater than 128");
             let gamma = Z::new(GAMMA_VALS[i] as i64);
             (h[2*i], h[2*i + 1]) = Z::base_case_multiply(self.0[2*i], self.0[2*i + 1], rhs.0[2*i], rhs.0[2*i + 1], gamma);
         }
@@ -205,5 +206,108 @@ impl<const M: i64, const N: usize, const K: usize> Circle<Znk<M, N, K>> for Znkx
             w[i] = (0..K).map(|j| self[i][j] * rhs[j]).sum();
         }
         return w;
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::sets::{B, Z, Zn, Znk};
+
+    #[test]
+    fn test_b_index() {
+        let mut test_element = B::<5>::new_random();
+        test_element[1] = 2;
+        test_element[2] = 3;
+        test_element[3] = 4;
+        test_element[4] = test_element[0];
+        assert_eq!(test_element[0], test_element[4]);
+        assert_eq!(test_element[1], 2);
+        assert_eq!(test_element[2], 3);
+        assert_eq!(test_element[3], 4);
+    }
+
+    #[test]
+    fn test_z_new() {
+        let a = Z::<24>::new(0);
+        let b = Z::<24>::new(12);
+        let c = Z::<24>::new(23);
+        let d = Z::<24>::new(24);
+        let e = Z::<24>::new(25);
+        let f = Z::<24>::new(48);
+        let g = Z::<24>::new(49);
+
+        assert_eq!(a.0, 0);
+        assert_eq!(b.0, 12);
+        assert_eq!(c.0, 23);
+        assert_eq!(d.0, 0);
+        assert_eq!(e.0, 1);
+        assert_eq!(f.0, 0);
+        assert_eq!(g.0, 1);
+    }
+
+    #[test]
+    fn test_z_add() {
+        let a = Z::<24>::new(13);
+        let b = Z::<24>::new(15);
+        let c = a + b;
+        assert_eq!(c.0, 4);
+    }
+
+    #[test]
+    fn test_z_mul() {
+        let a = Z::<24>::new(13);
+        let b = Z::<24>::new(15);
+        let c = a * b;
+        assert_eq!(c.0, 3);
+    }
+
+    #[test]
+    fn test_zn_index() {
+        let mut test_element = Zn::<24, 5>::new_empty();
+        test_element[0] = Z::new(1);
+        test_element[1] = Z::new(2);
+        test_element[2] = Z::new(3);
+        test_element[3] = Z::new(4);
+        test_element[4] = test_element[0];
+        assert_eq!(test_element[0].0, test_element[4].0);
+        assert_eq!(test_element[1].0, 2);
+        assert_eq!(test_element[2].0, 3);
+        assert_eq!(test_element[3].0, 4);
+    }
+
+    #[test]
+    fn test_zn_add() {
+        let mut a = Zn::<24, 5>::new_empty();
+        let mut b = Zn::<24, 5>::new_empty();
+
+        for i in 0..5 {
+            a[i] = Z::new(3 * i as i64);
+            b[i] = Z::new(7 * i as i64);
+        }
+
+        let c = a + b;
+        assert_eq!(c[0].0, 0);
+        assert_eq!(c[1].0, 10);
+        assert_eq!(c[2].0, 20);
+        assert_eq!(c[3].0, 6);
+        assert_eq!(c[4].0, 16);
+    }
+
+    #[test]
+    fn test_znk_sum() {
+        let mut a = Znk::<24, 5, 10>::new_empty();
+        for i in 0..5 {
+            for j in 0..10 {
+                a[j][i] = Z::new(2 * (i + j + 1) as i64);
+            }
+        }
+        let b: Zn<24, 5> = a.iter().sum();
+
+        assert_eq!(b[0].0, 14);
+        assert_eq!(b[1].0, 10);
+        assert_eq!(b[2].0, 6);
+        assert_eq!(b[3].0, 2);
+        assert_eq!(b[4].0, 22);
     }
 }

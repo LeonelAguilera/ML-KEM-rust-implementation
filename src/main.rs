@@ -2,6 +2,9 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
 
+#![allow(dead_code)]
+#![allow(unused)]
+
 mod ml_kem;
 mod sets;
 mod k_pke;
