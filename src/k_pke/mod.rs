@@ -1,10 +1,13 @@
-use crate::{hash_functions::HashFunctions, sampling_algorithms::SamplingAlgorithms, sets::{B, Circle, Znk, Znkxk}};
+use crate::{general_algorithms::byte_encode, hash_functions::HashFunctions, sampling_algorithms::SamplingAlgorithms, sets::{B, BK, Circle, NewEmpty, Znk, Znkxk}};
 
 pub struct KPke<const K: usize>;
 
 impl<const K: usize> KPke<K> {
     // Page 29
-    pub fn key_gen<const Q: i64, const ETA: usize>(d: B<32>) -> (B<{(K*384) + 32}>, B<{K*384}>) {
+    pub fn key_gen<const Q: i64, const ETA: usize>(d: B<32>) -> (B<{(K*384) + 32}>, B<{K*384}>)
+    where 
+        [(); {384 * K}]:
+    {
         let (rho, sigma) = HashFunctions::g([d.to_vec(), [K as u8].to_vec()].concat());
         let mut n = 0;
 
@@ -31,6 +34,8 @@ impl<const K: usize> KPke<K> {
         let e = e.map(|e_n| HashFunctions::ntt::<Q>(&e_n));
         let t = a.circle(s) + e;
 
+        let ek_pke: BK<384, K> = t.map(|t_e| byte_encode::<12, Q>(&t_e));
+        let ek_pke: B<{384 * K}> = ek_pke.flatten();
         todo!();
     }
 }
