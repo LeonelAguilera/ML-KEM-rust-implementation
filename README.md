@@ -65,7 +65,7 @@ fn function_b(a: irrelevant) -> [u8; 32] {}
 fn join_arrays<const A: usize, const B: usize>(lhs: [u8; A], rhs: [u8; B]) -> [u8; {A + B}] {}
 
 fn disaster<const K: usize>(a: irrelevant, b: irrelevant) -> [u8; {(256 * K) + 32}] {
-    let my_var = function_a::<K>::(a);
+    let my_var = function_a::<K>(a);
     let sufix = function_b(b);
 
     let output_val = join_arrays(my_var, sufix);
