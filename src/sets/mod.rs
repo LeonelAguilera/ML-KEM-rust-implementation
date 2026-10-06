@@ -9,6 +9,9 @@ impl<const N: usize> B<N> {
     pub fn new_empty() -> Self {
         return B([0; N]);
     }
+    pub fn new_populated(val: u8) -> Self {
+        return B([val; N]);
+    }
     pub fn new_random() -> Self {
         let mut b = [0; N];
         rand::fill(&mut b);
