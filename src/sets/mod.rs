@@ -59,7 +59,7 @@ impl<const N: usize, const M: i64> From<Zn<M, N>> for B<N> {
 pub struct BK<const N: usize, const K: usize>([B<N>; K]);
 
 impl<const N: usize, const K: usize> BK<N, K> {
-    pub fn flatten(&self) -> B<{N * K}> {
+    pub fn flatten(&self) -> B<{K * N}> {
         let mut b = B::new_empty();
         for i in 0..K {
             for j in 0..N {
@@ -204,13 +204,13 @@ impl<const M: i64, const N: usize, const K: usize> Znk<M, N, K> {
     pub fn iter(&self) -> std::vec::IntoIter<Zn<M, N>>{
         return self.to_vec().into_iter();
     }
-    pub fn map<B, F>(&self, f: F) -> B
+    pub fn map<S, F>(&self, f: F) -> S
     where 
-        B: NewEmpty + IndexMut<usize>,
-        <B as Index<usize>>::Output: Sized,
-        F: Fn(Zn<M, N>) -> <B as Index<usize>>::Output,
+        S: NewEmpty + IndexMut<usize>,
+        <S as Index<usize>>::Output: Sized,
+        F: Fn(Zn<M, N>) -> <S as Index<usize>>::Output,
     {
-        let mut out = B::new_empty();
+        let mut out = S::new_empty();
         for i in 0..K {
             out[i] = f(self[i]);
         }
