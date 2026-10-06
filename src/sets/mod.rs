@@ -55,6 +55,7 @@ impl<const M: i64> Z<M> {
         let c1 = (a0 * b1) + (a1 * b0);
         return (c0, c1);
     }
+    pub fn rem_euclid(&self) -> 
 }
 
 impl<const M: i64> Mul for Z<M> {

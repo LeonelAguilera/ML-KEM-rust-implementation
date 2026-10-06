@@ -10,6 +10,7 @@ mod sets;
 mod k_pke;
 mod hash_functions;
 mod sampling_algorithms;
+mod general_algorithms;
 
 use ml_kem::MlKemTypes;
 
