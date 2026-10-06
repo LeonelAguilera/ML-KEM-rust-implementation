@@ -4,10 +4,7 @@ pub struct KPke<const K: usize>;
 
 impl<const K: usize> KPke<K> {
     // Page 29
-    pub fn key_gen<const Q: i64, const ETA: usize>(d: B<32>) -> (B<{(K*384) + 32}>, B<{K*384}>)
-    where 
-        [(); {384 * K}]:
-    {
+    pub fn key_gen<const Q: i64, const ETA: usize>(d: B<32>) -> (B<{(K*384) + 32}>, B<{K*384}>) {
         let (rho, sigma) = HashFunctions::g([d.to_vec(), [K as u8].to_vec()].concat());
         let mut n = 0;
 
@@ -34,8 +31,9 @@ impl<const K: usize> KPke<K> {
         let e = e.map(|e_n| HashFunctions::ntt::<Q>(&e_n));
         let t = a.circle(s) + e;
 
-        let ek_pke: BK<384, K> = t.map(|t_e| byte_encode::<12, Q>(&t_e));
-        let ek_pke: B<{384 * K}> = ek_pke.flatten();
-        todo!();
+        let ek_pke: B<{(K*384) + 32}> = t.map::<BK<384, K>, _>(|t_e| byte_encode::<12, Q>(&t_e)).flatten().append(&rho);
+        let dk_pke: B<{K*384}> = s.map::<BK<384, K>, _>(|s_e| byte_encode::<12, Q>(&s_e)).flatten();
+        
+        return (ek_pke, dk_pke);
     }
 }
