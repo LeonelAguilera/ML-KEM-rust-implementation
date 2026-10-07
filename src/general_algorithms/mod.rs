@@ -1,15 +1,15 @@
 use crate::sets::{B, NewEmpty, Zn};
 
 // Page: 22
-pub fn byte_encode<const D: usize, const M: i64>(f: &Zn<M, 256>) -> B<{256 * D / 8}>
+pub fn byte_encode<const D: usize, const M: i64>(f: &Zn<M, 256>) -> B<{D * 256 / 8}>
 where 
-    [(); {256 * D}]:
+    [(); {D * 256}]:,
 {
     assert!(D <= 12, "Function `byte_encode` called with wrong D parameter: D > 12");
     if D < 12 {assert_eq!(M as u16, 2_u16.pow(D as u32), "M value incorrect for D selection")}
 
     let mut f = f.clone();
-    let mut b = Zn::<M, {256 * D}>::new_empty();
+    let mut b = Zn::<M, {D * 256}>::new_empty();
 
     for i in 0..256 {
         let a = f[i];
@@ -19,8 +19,8 @@ where
         }
     }
 
-    let b = B::from(b);
-    let k = bits_to_bytes(b);
+    let b = B::<{D * 256}>::from(b);
+    let k: B<{D * 256 / 8}> = bits_to_bytes::<{D * 256}>(b);
     return k;
 }
 
