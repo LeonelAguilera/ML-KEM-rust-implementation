@@ -1,3 +1,5 @@
+mod keccak;
+
 use crate::sets::{B, Zn};
 
 pub struct HashFunctions {}
