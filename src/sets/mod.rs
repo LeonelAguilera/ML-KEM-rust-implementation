@@ -28,11 +28,19 @@ impl<const N: usize> B<N> {
     pub fn len(&self) -> usize {
         return self.0.len();
     }
-    pub fn pad<const M: usize>(self, padding: u8) -> B<M> {
+    pub fn pad<const M: usize>(&self, padding: u8) -> B<M> {
         assert!(M <= N);
         let mut out = B::<M>::new_empty();
         for i in 0..M {
             out[i] = if i < N {self[i]} else {padding};
+        }
+        return out;
+    }
+    pub fn trunc<const M: usize>(&self) -> B<M> {
+        assert!(M < N, "Tried to trunk a B<N> into a bigger size");
+        let mut out = B::new_empty();
+        for i in 0..M {
+            out[i] = self[i];
         }
         return out;
     }

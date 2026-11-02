@@ -19,6 +19,11 @@ where
         s = f(s ^ p0n[i].pad(0));
     }
 
+    let mut z: B<0> = B::new_empty();
+    while z.len() < D {
+        let z = z.append(&s);
+    }
+
     todo!();
 }
 
@@ -28,3 +33,4 @@ fn pad10x1<const X: usize, const M: usize>() -> B<{(M+2) % X}> {
     output_array[((M + 2) % X) - 1] = 1;
     return output_array;
 }
+
