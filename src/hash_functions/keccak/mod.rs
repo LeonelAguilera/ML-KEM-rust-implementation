@@ -16,15 +16,19 @@ where
     let mut s = B::<BFW>::new_empty();
 
     for i in 0..n {
-        s = f(s ^ p0n[i].pad(0));
+        s = f(s ^ p0n[i].pad(|_|0));
     }
 
-    let mut z: B<0> = B::new_empty();
-    while z.len() < D {
-        let z = z.append(&s);
+    let mut z = B::new_empty();
+
+    for counter in 0..(D/R) {
+        for i in 0..R {
+            z[(counter * R) + i] = s[i];
+        }
+        s = f(s);
     }
 
-    todo!();
+    return z;
 }
 
 fn pad10x1<const X: usize, const M: usize>() -> B<{(M+2) % X}> {
@@ -34,3 +38,6 @@ fn pad10x1<const X: usize, const M: usize>() -> B<{(M+2) % X}> {
     return output_array;
 }
 
+fn keccak_p<const BFW: usize, const NR: usize>(a: B<BFW>, ir: usize) -> B<BFW> {
+    todo!();
+}
