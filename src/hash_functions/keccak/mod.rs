@@ -38,6 +38,6 @@ fn pad10x1<const X: usize, const M: usize>() -> B<{(M+2) % X}> {
     return output_array;
 }
 
-fn keccak_p<const BFW: usize, const NR: usize>(a: B<BFW>, ir: usize) -> B<BFW> {
+fn keccak_p<const BFW: usize, const NR: usize>(s: B<BFW>) -> B<BFW> {
     todo!();
 }
