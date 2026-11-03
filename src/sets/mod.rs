@@ -29,7 +29,7 @@ impl<const N: usize> B<N> {
         return self.0.len();
     }
     pub fn pad<const M: usize>(&self, padding_function: fn(usize)->u8) -> B<M> {
-        assert!(M <= N);
+        assert!(M > N, "Tried to reduce size by padding");
         let mut out = B::<M>::new_empty();
         for i in 0..M {
             out[i] = if i < N {self[i]} else {padding_function(i)};

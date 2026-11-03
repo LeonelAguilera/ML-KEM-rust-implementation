@@ -1,18 +1,32 @@
 use crate::sets::{B, BK, NewEmpty};
 
-fn keccak<const C: usize, const D: usize>(n: Vec<u8>) -> B<D> {
-    todo!();
+//Page 20
+fn keccak<const C: usize, const D: usize, const N_LEN: usize>(n: B<N_LEN>) -> B<D>
+where 
+    [(); {1600 - C}]:,
+    [(); { (1 + (N_LEN / (1600 - C))) * (1600 - C) }]:,
+    [(); { (1 + (N_LEN / (1600 - C))) * (1600 - C) / (1600 - C) }]:,
+{
+    return sponge::<D, {1600 - C}, 1600, N_LEN>(keccak_p::<1600, 24>, n);
 }
 
-fn sponge<const D: usize, const R: usize, const BFW: usize, const PAD_LEN: usize, const N_LEN: usize>(f: fn(B<BFW>)->B<BFW>, pad: B<PAD_LEN>, n: B<N_LEN>) -> B<D>
+//Page 19
+fn sponge<const D: usize, const R: usize, const BFW: usize, const N_LEN: usize>(f: fn(B<BFW>)->B<BFW>, n: B<N_LEN>) -> B<D>
 where 
-    [(); {N_LEN + PAD_LEN}]:,
-    [(); {(N_LEN + PAD_LEN) / R}]:,
-    [(); {BFW - R}]:,
+    [(); {(1 + (N_LEN / R)) * R}]:,
+    [(); {(1 + (N_LEN / R)) * R / R}]:,
 {
-    let p: B<{N_LEN + PAD_LEN}> = n.append(&pad);
+    let p: B<{(1 + (N_LEN / R)) * R}> = n.pad::<{(1 + (N_LEN / R)) * R}>(|index| {
+        if (index == N_LEN) || (index == ((R * (1 + (N_LEN / R))) - 1)) {
+            1
+        }
+        else {
+            0
+        }
+    });
     let n = p.len() / R;
-    let p0n: BK<R, {(N_LEN + PAD_LEN) / R}> = BK::from(p);
+
+    let p0n: BK<R, {((1 + (N_LEN / R))) * R / R}> = BK::<R, {((1 + (N_LEN / R))) * R / R}>::from(p);
     let mut s = B::<BFW>::new_empty();
 
     for i in 0..n {
@@ -31,6 +45,7 @@ where
     return z;
 }
 
+//Page 19
 fn pad10x1<const X: usize, const M: usize>() -> B<{(M+2) % X}> {
     let mut output_array = B::new_empty();
     output_array[0] = 1;
@@ -38,6 +53,7 @@ fn pad10x1<const X: usize, const M: usize>() -> B<{(M+2) % X}> {
     return output_array;
 }
 
+//Page 17
 fn keccak_p<const BFW: usize, const NR: usize>(s: B<BFW>) -> B<BFW>
 where
     [(); {BFW / 25}]:,
@@ -56,10 +72,12 @@ where
     return sp;
 }
 
+//Page 16
 fn rnd<const W: usize>(a: [[[u8; 5]; 5]; W], ir: usize) -> [[[u8; 5]; 5]; W] {
     return iota(xi(pi(rho(theta(a)))), ir);
 }
 
+//Page 16
 fn iota<const W: usize>(a: [[[u8; 5]; 5]; W], ir: usize) -> [[[u8; 5]; 5]; W] {
     let l = usize::ilog2(W) as usize;
     let mut ap = [[[0; 5]; 5]; W];
@@ -85,6 +103,7 @@ fn iota<const W: usize>(a: [[[u8; 5]; 5]; W], ir: usize) -> [[[u8; 5]; 5]; W] {
     return ap;
 }
 
+//Page 16
 fn rc_func(t: usize) -> u8 {
     let t_mod_255 = t.rem_euclid(255);
     if t_mod_255 == 0 {
@@ -108,6 +127,7 @@ fn rc_func(t: usize) -> u8 {
     return r[0];
 }
 
+//Page 15
 fn xi<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     let mut ap = [[[0; 5]; 5]; W];
 
@@ -122,6 +142,7 @@ fn xi<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     return ap;
 }
 
+//Page 14
 fn pi<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     let mut ap = [[[0; 5]; 5]; W];
 
@@ -136,6 +157,7 @@ fn pi<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     return ap;
 }
 
+//Page 12
 fn rho<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     let mut ap = [[[0; 5]; 5]; W];
 
@@ -151,6 +173,7 @@ fn rho<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     return ap;
 }
 
+//Page 11
 fn theta<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     let mut c = [[0; 5]; W];
     let mut d = [[0; 5]; W];
@@ -179,6 +202,7 @@ fn theta<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     return ap;
 }
 
+//Page 9
 fn string_to_state_array<const BFW: usize>(s: B<BFW>) -> [[[u8; 5]; 5]; {BFW / 25}] {
     let w = BFW / 25;
     let mut a: [[[u8; 5]; 5]; {BFW / 25}] = [[[0; 5]; 5]; {BFW / 25}];
@@ -193,6 +217,7 @@ fn string_to_state_array<const BFW: usize>(s: B<BFW>) -> [[[u8; 5]; 5]; {BFW / 2
     return a;
 }
 
+//Page 10
 fn state_array_to_string<const BFW: usize>(a: [[[u8; 5]; 5]; {BFW / 25}]) -> B<BFW> {
     let w = BFW / 25;
     let mut s: B<BFW> = B::new_empty();
