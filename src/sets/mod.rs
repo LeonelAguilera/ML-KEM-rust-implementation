@@ -2,7 +2,11 @@ use std::{iter::Sum, ops::{Add, BitXor, Index, IndexMut, Mul, Sub}, range::Range
 
 const GAMMA_VALS: [i16; 128] = [17, -17, 2761, -2761, 583, -583, 2649, -2649, 1637, -1637, 723, -723, 2288, -2288, 1100, -1100, 1409, -1409, 2662, -2662, 3281, -3281, 233, -233, 756, -756, 2156, -2156, 3015, -3015, 3050, -3050, 1703, -1703, 1651, -1651, 2789, -2789, 1789, -1789, 1847, -1847, 952, -952, 1461, -1461, 2687, -2687, 939, -939, 2308, -2308, 2437, -2437, 2388, -2388, 733, -733, 2337, -2337, 268, -268, 641, -641, 1584, -1584, 2298, -2298, 2037, -2037, 3220, -3220, 375, -375, 2549, -2549, 2090, -2090, 1645, -1645, 1063, -1063, 319, -319, 2773, -2773, 757, -757, 2099, -2099, 561, -561, 2466, -2466, 2594, -2594, 2804, -2804, 1092, -1092, 403, -403, 1026, -1026, 1143, -1143, 2150, -2150, 2775, -2775, 886, -886, 1722, -1722, 1212, -1212, 1874, -1874, 1029, -1029, 2110, -2110, 2935, -2935, 885, -885, 2154, -2154];
 
-#[derive(Clone, Copy)]
+pub trait Len {
+    fn len(&self) -> usize;
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct B<const N: usize>([u8; N]);
 
 impl<const N: usize> B<N> {
@@ -25,13 +29,12 @@ impl<const N: usize> B<N> {
 
         return whole;
     }
-    pub fn len(&self) -> usize {
-        return self.0.len();
-    }
-    pub fn pad<const M: usize>(&self, padding_function: fn(usize)->u8) -> B<M> {
-        assert!(M > N, "Tried to reduce size by padding");
-        let mut out = B::<M>::new_empty();
-        for i in 0..M {
+    pub fn pad<S>(&self, padding_function: fn(usize)->u8) -> S
+    where 
+        S: NewEmpty + IndexMut<usize, Output = u8> + Len,
+    {
+        let mut out = S::new_empty();
+        for i in 0..out.len() {
             out[i] = if i < N {self[i]} else {padding_function(i)};
         }
         return out;
@@ -41,6 +44,16 @@ impl<const N: usize> B<N> {
         let mut out = B::new_empty();
         for i in 0..M {
             out[i] = self[i];
+        }
+        return out;
+    }
+    pub fn bits_to_bytes(&self) -> B<{N/8}> {
+        assert_eq!(N.rem_euclid(8), 0, "Tried to turn into bytes a bit array with a length non divisible by eight");
+        let mut out = B::<{N/8}>::new_empty();
+        for i in 0..(N / 8) {
+            for j in 0..8 {
+                out[i] += self[(i * 8) + j] << j;
+            }
         }
         return out;
     }
@@ -75,6 +88,12 @@ impl<const N: usize, const M: i64> From<Zn<M, N>> for B<N> {
     }
 }
 
+impl<const N: usize> From<[u8; N]> for B<N> {
+    fn from(value: [u8; N]) -> Self {
+        return Self(value);
+    }
+}
+
 impl<const N: usize> BitXor for B<N> {
     type Output = Self;
     fn bitxor(self, rhs: Self) -> Self::Output {
@@ -83,6 +102,12 @@ impl<const N: usize> BitXor for B<N> {
             out[i] = self[i] ^ rhs[i];
         }
         return out;
+    }
+}
+
+impl<const N: usize> Len for B<N> {
+    fn len(&self) -> usize {
+        return N;
     }
 }
 

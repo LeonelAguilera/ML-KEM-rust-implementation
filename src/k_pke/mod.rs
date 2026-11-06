@@ -31,7 +31,7 @@ impl<const K: usize> KPke<K> {
         let e = e.map(|e_n| HashFunctions::ntt::<Q>(&e_n));
         let t = a.circle(s) + e;
 
-        let ek_pke: B<{(K*384) + 32}> = t.map::<BK<384, K>, _>(|t_e| byte_encode::<12, Q>(&t_e)).flatten().append(&rho);
+        let ek_pke: B<{(K*384) + 32}> = t.map::<BK<384, K>, _>(|t_e|  byte_encode::<12, Q>(&t_e)).flatten().append(&rho);
         let dk_pke: B<{K*384}> = s.map::<BK<384, K>, _>(|s_e| byte_encode::<12, Q>(&s_e)).flatten();
         
         return (ek_pke, dk_pke);

@@ -1,22 +1,23 @@
-use crate::sets::{B, BK, NewEmpty};
+use crate::sets::{B, BK, Len, NewEmpty};
 
 //Page 20
-fn keccak<const C: usize, const D: usize, const N_LEN: usize>(n: B<N_LEN>) -> B<D>
+//keccak<512, 256, N_LEN>(n) -> B<D>
+pub fn keccak<const C: usize, const D: usize, const N_LEN: usize>(n: &B<N_LEN>) -> B<{D/8}>
 where 
     [(); {1600 - C}]:,
     [(); { (1 + (N_LEN / (1600 - C))) * (1600 - C) }]:,
     [(); { (1 + (N_LEN / (1600 - C))) * (1600 - C) / (1600 - C) }]:,
 {
-    return sponge::<D, {1600 - C}, 1600, N_LEN>(keccak_p::<1600, 24>, n);
+    return sponge::<D, {1600 - C}, 1600, N_LEN>(keccak_p::<1600, 24>, n).bits_to_bytes();
 }
 
 //Page 19
-fn sponge<const D: usize, const R: usize, const BFW: usize, const N_LEN: usize>(f: fn(B<BFW>)->B<BFW>, n: B<N_LEN>) -> B<D>
+fn sponge<const D: usize, const R: usize, const BFW: usize, const N_LEN: usize>(f: fn(B<BFW>)->B<BFW>, n: &B<N_LEN>) -> B<D>
 where 
     [(); {(1 + (N_LEN / R)) * R}]:,
     [(); {(1 + (N_LEN / R)) * R / R}]:,
 {
-    let p: B<{(1 + (N_LEN / R)) * R}> = n.pad::<{(1 + (N_LEN / R)) * R}>(|index| {
+    let p: B<{(1 + (N_LEN / R)) * R}> = n.pad::<B<{(1 + (N_LEN / R)) * R}>>(|index| {
         if (index == N_LEN) || (index == ((R * (1 + (N_LEN / R))) - 1)) {
             1
         }
@@ -85,7 +86,7 @@ fn iota<const W: usize>(a: [[[u8; 5]; 5]; W], ir: usize) -> [[[u8; 5]; 5]; W] {
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..W {
-                ap[x][y][z] = a[x][y][z];
+                ap[z][y][x] = a[z][y][x];
             }
         }
     }
@@ -97,7 +98,7 @@ fn iota<const W: usize>(a: [[[u8; 5]; 5]; W], ir: usize) -> [[[u8; 5]; 5]; W] {
     }
 
     for z in 0..W {
-        ap[0][0][z] = ap[0][0][z] ^ rc[z];
+        ap[z][0][0] = ap[z][0][0] ^ rc[z];
     }
 
     return ap;
@@ -134,7 +135,7 @@ fn xi<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..W {
-                ap[x][y][z] = a[x][y][z] ^ ((a[(x + 1).rem_euclid(5)][y][z] ^ 1) & a[(x+2).rem_euclid(5)][y][z]);
+                ap[z][y][x] = a[z][y][x] ^ ((a[z][y][(x + 1).rem_euclid(5)] ^ 1) & a[z][y][(x+2).rem_euclid(5)]);
             }
         }
     }
@@ -149,7 +150,7 @@ fn pi<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..W {
-                ap[x][y][z] = a[(x + (3 * y)) % 5][y][z];
+                ap[z][y][x] = a[z][y][(x + (3 * y)) % 5];
             }
         }
     }
@@ -165,7 +166,7 @@ fn rho<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
 
     for t in 0..=23 {
         for z in 0..W {
-            ap[x][y][z] = a[x][y][(z - ((t + 1) * (t + 2) / 2)) % W];
+            ap[z][y][x] = a[(z.wrapping_sub((t + 1) * (t + 2) / 2)) % W][y][x];
             (x, y) = (y, ((2 * x) + (3 * y)) % 5);
         }
     }
@@ -181,20 +182,20 @@ fn theta<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
 
     for x in 0..5 {
         for z in 0..W {
-            c[x][z] = a[x][0][z] ^ a[x][1][z] ^ a[x][2][z] ^ a[x][3][z] ^ a[x][4][z];
+            c[z][x] = a[z][0][x] ^ a[z][1][x] ^ a[z][2][x] ^ a[z][3][x] ^ a[z][4][x];
         }
     }
 
     for x in 0..5 {
         for z in 0..W {
-            d[x][z] = c[(x - 1).rem_euclid(5)][z] ^ c[(x + 1).rem_euclid(5)][(z - 1).rem_euclid(5)];
+            d[z][x] = c[z][(x + 4).rem_euclid(5)] ^ c[(z + 4).rem_euclid(5)][(x + 1).rem_euclid(5)];
         }
     }
 
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..W {
-                ap[x][y][z] = a[x][y][z] ^ d[x][z];
+                ap[z][y][x] = a[z][y][x] ^ d[z][x];
             }
         }
     }
@@ -205,11 +206,12 @@ fn theta<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
 //Page 9
 fn string_to_state_array<const BFW: usize>(s: B<BFW>) -> [[[u8; 5]; 5]; {BFW / 25}] {
     let w = BFW / 25;
+    println!("bfw: {BFW} w: {w}");
     let mut a: [[[u8; 5]; 5]; {BFW / 25}] = [[[0; 5]; 5]; {BFW / 25}];
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..w {
-                a[x][y][z] = s[(w * ((5 * y) + x)) + z];
+                a[z][y][x] = s[(w * ((5 * y) + x)) + z];
             }
         }
     }
@@ -224,7 +226,7 @@ fn state_array_to_string<const BFW: usize>(a: [[[u8; 5]; 5]; {BFW / 25}]) -> B<B
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..w {
-                s[(w * ((5 * y) + x)) + z] = a[x][y][z];
+                s[(w * ((5 * y) + x)) + z] = a[z][y][x];
             }
         }
     }

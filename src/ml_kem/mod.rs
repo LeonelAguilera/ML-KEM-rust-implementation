@@ -40,6 +40,8 @@ impl<const N: u64, const Q: i64, const K: usize, const ETA1: usize, const ETA2: 
     where 
         [(); (K*384) + 32]:,
         [(); (K*768) + 96]:,
+        [(); {(1 + (((K*384) + 32 + 2) / (1600 - 512))) * (1600 - 512)}]:,
+        [(); {(1 + (((K*384) + 32 + 2) / (1600 - 512))) * (1600 - 512) / (1600 - 512)}]:,
     {
         let d = B::<32>::new_random();
         let z = B::<32>::new_random();
@@ -49,10 +51,14 @@ impl<const N: u64, const Q: i64, const K: usize, const ETA1: usize, const ETA2: 
     }
     
     // Page 32
-    fn key_gen_internal(&self, d: B<32>, z: B<32>) -> (B<{(K*384) + 32}>, B<{(K*768) + 96}>) {
+    fn key_gen_internal(&self, d: B<32>, z: B<32>) -> (B<{(K*384) + 32}>, B<{(K*768) + 96}>)
+    where 
+        [(); {(1 + (((K*384) + 32 + 2) / (1600 - 512))) * (1600 - 512)}]:,
+        [(); {(1 + (((K*384) + 32 + 2) / (1600 - 512))) * (1600 - 512) / (1600 - 512)}]:
+    {
         let (ek_pke, dk_pke) = KPke::<K>::key_gen::<Q, ETA1>(d);
         let ek = ek_pke;
-        let dk = Self::get_dk(dk_pke, ek, HashFunctions::h(&ek), z);
+        let dk = Self::get_dk(dk_pke, ek, HashFunctions::h::<{(K*384)+32}>(&ek), z);
 
         return (ek, dk);
     }
