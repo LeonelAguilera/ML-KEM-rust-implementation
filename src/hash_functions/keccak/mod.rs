@@ -17,6 +17,7 @@ where
     [(); {(1 + (N_LEN / R)) * R}]:,
     [(); {(1 + (N_LEN / R)) * R / R}]:,
 {
+    println!("Input string: {:?}\n", n);
     let p: B<{(1 + (N_LEN / R)) * R}> = n.pad::<B<{(1 + (N_LEN / R)) * R}>>(|index| {
         if (index == N_LEN) || (index == ((R * (1 + (N_LEN / R))) - 1)) {
             1
@@ -25,9 +26,11 @@ where
             0
         }
     });
+    println!("p: {:?}\n", p);
     let n = p.len() / R;
 
     let p0n: BK<R, {((1 + (N_LEN / R))) * R / R}> = BK::<R, {((1 + (N_LEN / R))) * R / R}>::from(p);
+    println!("p0n<{}, {}>: {:?}\n", R, {((1 + (N_LEN / R))) * R / R}, p0n);
     let mut s = B::<BFW>::new_empty();
 
     for i in 0..n {
@@ -62,9 +65,13 @@ where
     let w = BFW / 25;
     let l = usize::ilog2(w) as usize;
 
+    println!("s: {:?}\n", s);
+
     let mut a: [[[u8; 5]; 5]; {BFW / 25}] = string_to_state_array(s);
+    println!("a: {:?}\n", a);
 
     for ir in (12 + (2 * l) - NR)..(12 + (2*l)) {
+        println!("ir: {ir}\n");
         a = rnd(a, ir);
     }
 
@@ -113,12 +120,11 @@ fn rc_func(t: usize) -> u8 {
     let mut r = B::<9>::new_empty();
     r[0] = 1;
 
-    for i in 1..t_mod_255 {
-        for temp in 8..1 {
+    for i in 1..=t_mod_255 {
+        for temp in (1..9).rev() {
             r[temp] = r[temp - 1];
         }
-        r[0] = 1;
-
+        r[0] = 0;
         r[0] = r[0] ^ r[8];
         r[4] = r[4] ^ r[8];
         r[5] = r[5] ^ r[8];
@@ -206,12 +212,13 @@ fn theta<const W: usize>(a: [[[u8; 5]; 5]; W]) -> [[[u8; 5]; 5]; W] {
 //Page 9
 fn string_to_state_array<const BFW: usize>(s: B<BFW>) -> [[[u8; 5]; 5]; {BFW / 25}] {
     let w = BFW / 25;
-    println!("bfw: {BFW} w: {w}");
     let mut a: [[[u8; 5]; 5]; {BFW / 25}] = [[[0; 5]; 5]; {BFW / 25}];
-    for x in 0..5 {
-        for y in 0..5 {
+    for y in 0..5 {
+        for x in 0..5 {
             for z in 0..w {
-                a[z][y][x] = s[(w * ((5 * y) + x)) + z];
+                let val = s[(w * ((5 * y) + x)) + z];
+                a[z][y][x] = val;
+                //println!("a[{z}][{y}][{x}] = s[{}] = {}", (w * ((5 * y) + x)) + z, val);
             }
         }
     }
@@ -232,4 +239,25 @@ fn state_array_to_string<const BFW: usize>(a: [[[u8; 5]; 5]; {BFW / 25}]) -> B<B
     }
 
     return s;
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::hash_functions::keccak::rc_func;
+
+    #[test]
+    fn test_rc() {
+        assert_eq!(rc_func(0), 1, "Failed at 0");
+        assert_eq!(rc_func(1), 0, "Failed at 1");
+        assert_eq!(rc_func(2), 0, "Failed at 2");
+        assert_eq!(rc_func(3), 0, "Failed at 3");
+        assert_eq!(rc_func(4), 0, "Failed at 4");
+        assert_eq!(rc_func(5), 0, "Failed at 5");
+        assert_eq!(rc_func(6), 0, "Failed at 6");
+        assert_eq!(rc_func(7), 0, "Failed at 7");
+        assert_eq!(rc_func(8), 1, "Failed at 8");
+        assert_eq!(rc_func(9), 0, "Failed at 9");
+        assert_eq!(rc_func(10), 1, "Failed at 10");
+        assert_eq!(rc_func(255), 1, "Failed at 255");
+    }
 }

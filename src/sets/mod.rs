@@ -52,7 +52,7 @@ impl<const N: usize> B<N> {
         let mut out = B::<{N/8}>::new_empty();
         for i in 0..(N / 8) {
             for j in 0..8 {
-                out[i] += self[(i * 8) + j] << j;
+                out[i] += (self[(i * 8) + j] & 0b1) << (7 - j);
             }
         }
         return out;
@@ -111,6 +111,7 @@ impl<const N: usize> Len for B<N> {
     }
 }
 
+#[derive(Debug)]
 pub struct BK<const N: usize, const K: usize>([B<N>; K]);
 
 impl<const N: usize, const K: usize> BK<N, K> {
@@ -374,6 +375,21 @@ mod tests {
         assert_eq!(test_element[1], 2);
         assert_eq!(test_element[2], 3);
         assert_eq!(test_element[3], 4);
+    }
+
+    #[test]
+    fn test_b_bits_to_bytes() {
+        let test_element_0 = B::from([0, 0, 0, 0, 0, 0, 0, 0]);
+        let test_element_1 = B::from([1, 1, 1, 1, 1, 1, 1, 1]);
+        let test_element_2 = B::from([0, 0, 1, 0, 1, 0, 1, 0]);
+        let test_element_3 = B::from([0, 1, 0, 0, 0, 1, 0, 1]);
+        let test_element_4 = B::from([1, 0, 0, 0, 0, 0, 0, 0]);
+
+        assert_eq!(test_element_0.bits_to_bytes().0, [0]);
+        assert_eq!(test_element_1.bits_to_bytes().0, [255]);
+        assert_eq!(test_element_2.bits_to_bytes().0, [42]);
+        assert_eq!(test_element_3.bits_to_bytes().0, [69]);
+        assert_eq!(test_element_4.bits_to_bytes().0, [128]);
     }
 
     #[test]
