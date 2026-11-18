@@ -1,4 +1,6 @@
-use std::{iter::Sum, ops::{Add, BitXor, Index, IndexMut, Mul, Sub}, range::Range};
+use std::{fmt, iter::Sum, ops::{Add, BitXor, Index, IndexMut, Mul, Sub}, range::Range};
+
+use rand::RngExt;
 
 const GAMMA_VALS: [i16; 128] = [17, -17, 2761, -2761, 583, -583, 2649, -2649, 1637, -1637, 723, -723, 2288, -2288, 1100, -1100, 1409, -1409, 2662, -2662, 3281, -3281, 233, -233, 756, -756, 2156, -2156, 3015, -3015, 3050, -3050, 1703, -1703, 1651, -1651, 2789, -2789, 1789, -1789, 1847, -1847, 952, -952, 1461, -1461, 2687, -2687, 939, -939, 2308, -2308, 2437, -2437, 2388, -2388, 733, -733, 2337, -2337, 268, -268, 641, -641, 1584, -1584, 2298, -2298, 2037, -2037, 3220, -3220, 375, -375, 2549, -2549, 2090, -2090, 1645, -1645, 1063, -1063, 319, -319, 2773, -2773, 757, -757, 2099, -2099, 561, -561, 2466, -2466, 2594, -2594, 2804, -2804, 1092, -1092, 403, -403, 1026, -1026, 1143, -1143, 2150, -2150, 2775, -2775, 886, -886, 1722, -1722, 1212, -1212, 1874, -1874, 1029, -1029, 2110, -2110, 2935, -2935, 885, -885, 2154, -2154];
 
@@ -161,7 +163,7 @@ impl<const NK: usize, const N: usize> From<B<NK>> for BK<N, {NK/N}> {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Z<const M: i64>(i16);
 
 impl<const M: i64> Z<M> {
@@ -203,7 +205,13 @@ impl<const M: i64> Sub for Z<M> {
     }
 }
 
-#[derive(Clone, Copy)]
+impl<const M: i64> fmt::Display for Z<M> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct Zn<const M: i64, const N: usize>([Z<M>; N]);
 
 impl<const M: i64, const N: usize> Zn<M, N> {
@@ -212,6 +220,13 @@ impl<const M: i64, const N: usize> Zn<M, N> {
     }
     pub fn iter(&self) -> std::vec::IntoIter<Z<M>> {
         return self.to_vec().into_iter();
+    }
+    pub fn new_random() -> Self {
+        let mut output = Self::new_empty();
+        for i in 0..output.len() {
+            output[i] = Z::new(rand::rng().random());
+        }
+        return output;
     }
 }
 
@@ -262,6 +277,12 @@ impl<const M: i64, const N: usize> Add for Zn<M, N> {
 impl<const M: i64, const N: usize> Sum for Zn<M, N> {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Self::new_empty(), |lhs, rhs| lhs + rhs)
+    }
+}
+
+impl<const M: i64, const N: usize> Len for Zn<M, N> {
+    fn len(&self) -> usize {
+        return self.0.len();
     }
 }
 
