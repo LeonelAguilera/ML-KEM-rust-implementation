@@ -40,6 +40,9 @@ impl HashFunctions {
                 let zeta = HashFunctions::compute_ntt_zeta::<Q>(i);
                 i += 1;
                 for j in start..(start + len) {
+                    if j < 10 {
+                        println!("({len}, {j}) = {}", f_hat[j]);
+                    }
                     let t = zeta * f_hat[j + len];
                     f_hat[j + len] = f_hat[j] - t;
                     f_hat[j] = f_hat[j] + t;
