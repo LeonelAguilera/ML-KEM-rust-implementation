@@ -22,6 +22,7 @@ fn main() {
     //println!("{:?}", shaed);
     
     testbench_generators::create_ntt_testbench();
+    testbench_generators::create_ntt_inv_testbench();
 
     let crypto = MlKemTypes::MlKem512.new();
     let (encryption_key, decryption_key) = crypto.key_gen();
