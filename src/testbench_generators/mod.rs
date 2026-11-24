@@ -33,13 +33,14 @@ pub fn create_ntt_inv_testbench() {
         for i in 0..(f_hat.len() - 1) {
             ntt_inv_file += &format!("{}, ", f_hat[i]);
         }
-        ntt_inv_file += &format!("{}\n", f_hat[f_hat.len() - 1]);
+        ntt_inv_file += &format!("{};", f_hat[f_hat.len() - 1]);
 
         for i in 0..(f.len() - 1) {
             ntt_inv_file += &format!("{}, ", f[i]);
         }
-        ntt_inv_file += &format!("{}; ", f[f.len() - 1]);
+        ntt_inv_file += &format!("{}\n ", f[f.len() - 1]);
     }
 
     let _ = fs::write("ntt_inv.txt", ntt_inv_file);
 }
+
